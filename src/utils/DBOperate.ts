@@ -1,12 +1,12 @@
 
-let dbName = 'moneyFreeDB'
-let storeName ='moneyFreeStore'
-let version = 1
+let dbName : string = 'moneyFreeDB'
+let storeName :string ='moneyFreeStore'
+let version : number = 1
 
 function createIndexDB(callback) {
-  let db;
-  let indexedDB = window.indexedDB
-  const request = indexedDB.open(dbName, version)
+  let db : any;
+  let indexedDB :any = window.indexedDB
+  const request :any = indexedDB.open(dbName, version)
   request.onsuccess = function (event) {
     db = event.target.result // 数据库对象
     console.log('数据库打开成功...')
@@ -20,7 +20,7 @@ function createIndexDB(callback) {
     // 数据库创建或升级的时候会触发
     console.log('onupgradeneeded')
     db = event.target.result
-    let objectStore
+    let objectStore :any
     if (!db.objectStoreNames.contains(storeName)) {
       objectStore = db.createObjectStore(storeName, {
         keyPath: 'id'
