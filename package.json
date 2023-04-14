@@ -15,7 +15,8 @@
     "element-plus": "^2.3.3",
     "typescript": "^5.0.4",
     "uuid": "^9.0.0",
-    "vue": "^3.2.45"
+    "vue": "^3.2.45",
+    "vue-router": "^4.1.6"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.2.2",

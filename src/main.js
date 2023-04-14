@@ -9,10 +9,11 @@ import App from './App.vue';
 
 import {  } from "./utils/DBOperate";
 
-
+import {router} from './router/index'
 
 const app = createApp(App);
 app.use(ElementUI);
+app.use(router)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
   }

@@ -31,7 +31,6 @@ function createIndexDB(callback) {
 }
 
 
-
 function addData(db,data) {
   return new Promise((resolve, reject) => {
     let request = db.transaction([storeName], 'readwrite') // 事务对象 指定表格名称和操作模式（"只读"或"读写"）
@@ -62,7 +61,7 @@ function deleteData(db,id) {
 }
 
 
-function getData(key) {
+function getData(db,key) {
   let transaction = db.transaction([storeName]) // 事务
   let objectStore = transaction.objectStore(storeName) // 仓库对象
   let request = objectStore.get(key)
