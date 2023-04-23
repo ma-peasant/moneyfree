@@ -1,7 +1,12 @@
 
 let dbName : string = 'moneyFreeDB'
+//消费表
 let storeName :string ='moneyFreeStore'
-let version : number = 1
+//消费类型表
+let consumeTypeTable :string  = 'consumeTypeStore'
+let version : number = 4
+
+import { tauri } from "@tauri-apps/api"
 
 function createIndexDB(callback) {
   let db : any;
@@ -27,17 +32,26 @@ function createIndexDB(callback) {
       }) // 创建表
       // objectStore.createIndex('name', 'name', { unique: true }) // 创建索引 可以让你搜索任意字段
     }
+    //创建消费类型表
+    if (!db.objectStoreNames.contains(consumeTypeTable)) {
+      objectStore = db.createObjectStore(consumeTypeTable, {
+        keyPath: 'id'
+      }) // 创建表
+      // objectStore.createIndex('name', 'name', { unique: true }) // 创建索引 可以让你搜索任意字段
+    }
   }
 }
 
 
-function addData(db,data) {
+function addData(db,tableName:string,data) {
   return new Promise((resolve, reject) => {
-    let request = db.transaction([storeName], 'readwrite') // 事务对象 指定表格名称和操作模式（"只读"或"读写"）
-      .objectStore(storeName) // 仓库对象
+    let request = db.transaction([tableName], 'readwrite') // 事务对象 指定表格名称和操作模式（"只读"或"读写"）
+      .objectStore(tableName) // 仓库对象
       .add(data)
 
     request.onsuccess = function (event) {
+      //发布一个消息，让其他页面都订阅该消息
+      tauri.invoke('DataChange');
       resolve(event)
     }
 
@@ -48,8 +62,8 @@ function addData(db,data) {
   })
 }
 
-function deleteData(db,id) {
-  let request = db.transaction([storeName], 'readwrite').objectStore(storeName).delete(id)
+function deleteData(db,tableName,id) {
+  let request = db.transaction([tableName], 'readwrite').objectStore(tableName).delete(id)
 
   request.onsuccess = function () {
     console.log('数据删除成功')
@@ -61,9 +75,9 @@ function deleteData(db,id) {
 }
 
 
-function getData(db,key) {
-  let transaction = db.transaction([storeName]) // 事务
-  let objectStore = transaction.objectStore(storeName) // 仓库对象
+function getData(db,tableName,key) {
+  let transaction = db.transaction([tableName]) // 事务
+  let objectStore = transaction.objectStore(tableName) // 仓库对象
   let request = objectStore.get(key)
 
   request.onerror = function (event) {
@@ -75,9 +89,9 @@ function getData(db,key) {
   }
 }
 
-function getAllData(db) {
-  let transaction = db.transaction([storeName]) // 事务
-  let objectStore = transaction.objectStore(storeName) // 仓库对象
+function getAllData(db,tableName) {
+  let transaction = db.transaction([tableName]) // 事务
+  let objectStore = transaction.objectStore(tableName) // 仓库对象
   let request = objectStore.getAll()
 
   return request
@@ -94,9 +108,9 @@ function getAllData(db) {
 
 
 
-function upData(db, storeName, data) {
-  let request = db.transaction([storeName], 'readwrite') // 事务对象
-    .objectStore(storeName) // 仓库对象
+function upData(db, tableName, data) {
+  let request = db.transaction([tableName], 'readwrite') // 事务对象
+    .objectStore(tableName) // 仓库对象
     .put(data)
 
   request.onsuccess = function () {
@@ -108,4 +122,4 @@ function upData(db, storeName, data) {
   }
 }
 
-export{createIndexDB,addData,deleteData,getData,upData,getAllData}
+export{createIndexDB,addData,deleteData,getData,upData,getAllData , storeName, consumeTypeTable}

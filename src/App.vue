@@ -2,23 +2,49 @@
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 import Greet from "./components/Greet.vue";
-
+import {v4 as uuid} from 'uuid';
 import { createSettingWindow } from "./utils/windowsUtils"
-import { ref } from 'vue'
+import { ref ,reactive} from 'vue'
 import { ElMessageBox } from 'element-plus'
+import { createIndexDB, addData, getAllData,deleteData,consumeTypeTable } from "./utils/DBOperate";
+import {ConsumeData} from "./beans/ConsumeData"
 
-const drawer = ref(false)
-const direction = ref('rtl')
-const radio1 = ref('Option 1')
+const drawer = ref(false);
+const direction = ref('rtl');
+const radio1 = ref('Option 1');
+
+let input_consumeType = ref('');
+
+let dbObject : any ;
+let tableData = reactive([] as any);
+
+createIndexDB((db :any) => {
+  dbObject = db;
+  let request = getAllData(db,consumeTypeTable);
+  request.onsuccess = function (event) {
+    console.log("数据库查询结果：" + request.result)
+    request.result.filter( item =>{
+      tableData.push(item)
+    })
+  }
+
+  let request2 = getAllData(db,consumeTypeTable);
+  request2.onsuccess = function (event) {
+    console.log(consumeTypeTable + "数据库查询结果：" + request2.result)
+    
+  }
+});
+
 
 const handleClose = (done: () => void) => {
-  ElMessageBox.confirm('Are you sure you want to close this?')
-    .then(() => {
-      done()
-    })
-    .catch(() => {
-      // catch error
-    })
+  // ElMessageBox.confirm('Are you sure you want to close this?')
+  //   .then(() => {
+  //     location.reload()
+  //   })
+  //   .catch(() => {
+  //     // catch error
+  //   })
+   location.reload();
 }
 
 
@@ -28,6 +54,19 @@ function openSetting() {
   this.drawer = true
 }
 
+function addConsumeType(){
+  let data = new ConsumeData();
+  data.id = uuid();
+  data.content = input_consumeType.value;
+  addData(dbObject,consumeTypeTable,data);
+  tableData.push(data);
+  this.$refs.greet.consumeTypeBase.push(data)
+}
+
+function deleteConsumeType(index,row){
+  deleteData(dbObject, consumeTypeTable ,row.id);
+  tableData.splice(index,1)
+}
 
 function cancelClick() {
   this.drawer.value = false
@@ -51,22 +90,22 @@ function confirmClick() {
         <Tools />
       </el-icon>
     </div>
-    <Greet />
+    <Greet ref="greet" />
   </div>
-  <el-drawer v-model="drawer" :direction="direction">
+  <el-drawer v-model="drawer" :direction="direction" :before-close = "handleClose">
     <template #header>
       <h4>添加消费类型</h4>
     </template>
     <template #default>
       <div>
-        <el-input v-model="input" placeholder="Please input" clearable />
-        <el-button type="primary" round>Primary</el-button>
+        <el-input v-model="input_consumeType" placeholder="Please input" clearable />
+        <el-button type="primary" round @click= "addConsumeType()">Primary</el-button>
         
         <el-table :data="tableData" style="width: 100%">
-          <el-table-column fixed prop="date" label="消费类型" width="150" />
+          <el-table-column fixed prop="content" label="消费类型" width="150" />
           <el-table-column fixed="right" label="Operations" width="120">
-          <template #default>
-            <el-button link type="primary" size="small" @click="">删除</el-button>
+          <template #default= "scope">
+            <el-button link type="primary" size="small" @click="deleteConsumeType(scope.$index,scope.row)">删除</el-button>
             <el-button link type="primary" size="small">修改</el-button>
           </template>
           </el-table-column>

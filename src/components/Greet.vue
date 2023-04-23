@@ -2,20 +2,51 @@
 import { reactive, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import {v4 as uuid} from 'uuid';
-import { createIndexDB, addData, getAllData,deleteData } from "../utils/DBOperate";
+import { createIndexDB, addData, getAllData,deleteData,consumeTypeTable,storeName } from "../utils/DBOperate";
 
 import { MoneyData ,MoenyTag} from '../beans/MoneyData';
+import { ConsumeData} from '../beans/ConsumeData';
+
+defineProps({
+  ConsumeType:[]
+})
 
 let dbObject :any;
 let tableData = reactive([] as any);
+
+const  consumeBaseData = ['早饭', '午饭', '晚饭', '衣', '零食', '租房', '出行', '电子消费', '话费']
+const consumeTypeBase = reactive([] as any);
+
 createIndexDB((db :any) => {
   dbObject = db;
-  let request = getAllData(db);
+  let request = getAllData(db,storeName);
   request.onsuccess = function (event) {
-    console.log("数据库查询结果：" + request.result)
+    console.log("storeName + 数据库查询结果：" + request.result)
     request.result.filter( item =>{
       tableData.push(item)
     })
+  }
+  let request2 = getAllData(db,consumeTypeTable);
+  request2.onsuccess = function (event) {
+    console.log(consumeTypeTable + "数据库查询结果：" + request2.result)
+    if(request2.result.length >0){
+      request2.result.filter( item =>{
+        consumeTypeBase.push(item)
+      })
+    }else{
+      consumeBaseData.forEach(element => {
+        console.log(element);
+        let data = new ConsumeData();
+        data.id= uuid();
+        data.content = element;
+        consumeTypeBase.push(data)
+      })
+      consumeTypeBase.forEach(element => {
+        console.log('data.name = ' + element.content)
+        let data : ConsumeData = element;
+        addData(db,consumeTypeTable,data);
+      })
+    }
   }
 });
 
@@ -24,7 +55,7 @@ const moneyTag = ref('')
 const prices = ref('')
 const mark = ref('') // 备注
 const lifeEnergy = ref('')   //生命能量
-const consumptionType = ['早饭', '午饭', '晚饭', '衣', '零食', '租房', '出行', '电子消费', '话费']
+
 const moneyTpye = [MoenyTag.pay, MoenyTag.income]
 const consumeDate = ref("")
 const tableType = [
@@ -67,24 +98,22 @@ function greet() {
 
   this.tableData.push(data);
   console.log(this.tableData)
-  addData(dbObject, data);
+  addData(dbObject,storeName, data);
 }
 
 function editClick() {
   console.log("123");
 }
 function deleteRow(index , row) {
-  deleteData(dbObject, row.id);
+  deleteData(dbObject, storeName ,row.id);
   tableData.splice(index,1)
 }
-
-
 </script>
 <template>
   <div>
     <div style="display: flex; flex-direction: row;">
       <el-select v-model="tag" class="m-2" placeholder="消费类别" size="large">
-        <el-option v-for="item in consumptionType" :key="item" :label="item" :value="item" />
+        <el-option v-for="item in consumeTypeBase" :key="item.content" :label="item.content" :value="item.content" />
       </el-select>
       <el-date-picker style="width: 240px;" v-model="consumeDate" type="date" placeholder="Pick a day" size="large" format = "YYYY-MM-DD" value-format = "YYYY-MM-DD"/>
       <el-input style="width: 200px;" v-model="prices" placeholder="money"
