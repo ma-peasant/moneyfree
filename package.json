@@ -12,6 +12,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
     "@tauri-apps/api": "^1.2.0",
+    "echarts": "^5.4.2",
     "element-plus": "^2.3.3",
     "typescript": "^5.0.4",
     "uuid": "^9.0.0",
